@@ -7,4 +7,14 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="NeuralTests\BaseTest.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="NeuralTests\BaseTest.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>
