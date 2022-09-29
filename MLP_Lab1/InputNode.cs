@@ -19,7 +19,7 @@ namespace MLP_Lab1
             this.outputs = outputs;
         }
 
-        public float NodeOutput(int testNum)
+        public double NodeOutput(int testNum)
         {
             return (float)outputs[testNum];
         }

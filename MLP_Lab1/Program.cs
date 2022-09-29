@@ -11,8 +11,11 @@ namespace MLP_Lab1
         static void Main(string[] args)
         {
             NetworkController networkController = new NetworkController();
-            networkController.ObtainBaseInfo();
-            Console.WriteLine();
+            int success = networkController.ObtainBaseInfo();
+            if (success == 0) {
+                networkController.GenerateNetwork();
+                networkController.RunTraining();
+            }
         }
     }
 }

@@ -8,6 +8,6 @@ namespace MLP_Lab1
 {
     public interface NeuralNode
     {
-        float NodeOutput(int testNum);
+        double NodeOutput(int testNum);
     }
 }
