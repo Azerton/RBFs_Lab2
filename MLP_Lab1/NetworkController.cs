@@ -341,6 +341,8 @@ namespace MLP_Lab1
                     Console.Write(" " + Math.Truncate(val * 1000) / 1000);
                 }
                 Console.WriteLine();
+                PresentNodeNetwork();
+                Console.WriteLine();
             }
             List<List<double>> errOuts = new List<List<double>>();
             errOuts.Add(testOuts);
@@ -361,30 +363,19 @@ namespace MLP_Lab1
         //Can be used to output the generated Node Network
         private void PresentNodeNetwork()
         {
-            int layerNum = 1;
-            foreach (Queue<(NeuralNode, double)> layer in allNodesAndInputs)
+            Console.WriteLine("Output node bias = " + ((LearnableNode)outputNode).GetBias());
+            int learnNodeNum = 1;
+            foreach ((NeuralNode, double) node in ((LearnableNode)outputNode).GetInputs())
             {
-                Console.WriteLine("Layer " + layerNum);
-                foreach ((NeuralNode, double) nodeAndWeight in layer)
+
+                Console.WriteLine("Hidden node " + learnNodeNum + " bias = " + ((LearnableNode)node.Item1).GetBias() + " and weight = " + node.Item2);
+                int inputNodeNum = 1;
+                foreach ((NeuralNode, double) inputNode in ((LearnableNode)node.Item1).GetInputs())
                 {
-                    Console.Write(nodeAndWeight.Item1.GetType() + " with w = " + nodeAndWeight.Item2);
-                    if (nodeAndWeight.Item1 is LearnableNode) Console.Write(" and bias = " + ((LearnableNode)(nodeAndWeight.Item1)).GetBias());
-                    Console.WriteLine();
+                    Console.WriteLine("Input node " + inputNodeNum + " weight = " + inputNode.Item2);
+                    inputNodeNum++;
                 }
-                Console.WriteLine();
-                layerNum++;
-            }
-            Console.WriteLine("The input for each test case are as follows...");
-            int testNum = 1;
-            foreach (List<int> testCase in inputValuesForTests)
-            {
-                Console.Write("Test " + testNum + ": ");
-                foreach (int input in testCase)
-                {
-                    Console.Write(input + " ");
-                }
-                Console.WriteLine();
-                testNum++;
+                learnNodeNum++;
             }
         }
     }

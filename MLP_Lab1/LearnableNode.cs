@@ -24,9 +24,9 @@ namespace MLP_Lab1
             return bias;
         }
 
-        public void AssignInputs(Queue<(NeuralNode, double)> inputs)
+        public Queue<(NeuralNode, double)> GetInputs()
         {
-            this.inputs = inputs;
+            return inputs;
         }
 
         public double NodeOutput(int testNum)
@@ -83,7 +83,7 @@ namespace MLP_Lab1
             }
 
             //Apply learning to bias
-            bias = learningRate * nodeD * bias;
+            bias += (learningRate * nodeD * bias);
             learningVals.Clear();
         }
     }

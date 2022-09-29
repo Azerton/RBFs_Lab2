@@ -14,11 +14,6 @@ namespace MLP_Lab1
             this.outputs = outputs;
         }
 
-        public void AssignOutputs(List<int> outputs)
-        {
-            this.outputs = outputs;
-        }
-
         public double NodeOutput(int testNum)
         {
             return (float)outputs[testNum];
