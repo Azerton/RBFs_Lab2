@@ -276,6 +276,16 @@ namespace MLP_Lab1
 
             //Exit training as it has finished successfully
             Console.WriteLine("Training has finished successfully!");
+            Console.WriteLine("Inputs for Epoch " + epochs + ": ");
+            foreach (List<double> inputList in inputValuesLists)
+            {
+                foreach (int val in testingOrder)
+                {
+                    Console.Write(" " + inputList[val]);
+                }
+                Console.WriteLine();
+            }
+            Console.WriteLine();
             Console.WriteLine("Expected outputs for Epoch " + epochs + ": ");
             foreach (int val in testingOrder)
             {
@@ -324,26 +334,26 @@ namespace MLP_Lab1
                 //file.WriteLine("Output for Test " + i + " is " + output + ". The expected output was " + testAnswers[i] + ".");
                 
                 //Train the initial output node
-                double tempLR = lrCurr;
-                if (weightMomentum != 1) tempLR = lrCurr / (1 - weightMomentum);
+                double tempLR = lrCurr; //The current learning rate
+                if (weightMomentum != 1) tempLR = lrCurr / (1 - weightMomentum);    //The modified learning rate based on the weight momentum instead
                 Stack<Queue<(NeuralNode, double)>> temp = new Stack<Queue<(NeuralNode, double)>>();
                 temp.Push(allNodesAndInputs.Pop());
-                double outputd = testAnswers[i] - output;
+                double outputd = testAnswers[i] - output;   //The error between the expected output and the actual output
                 testErrs.Add(Math.Abs(outputd));
-                ((LearnableNode)outputNode).OutToLearnFrom(outputd);
-                ((LearnableNode)outputNode).BackTrackLearn(i, tempLR);
+                ((LearnableNode)outputNode).OutToLearnFrom(outputd);    //Add the error of the output to the queue of error values that the node will need to learn from
+                ((LearnableNode)outputNode).BackTrackLearn(i, tempLR);  //Run the training on the output node
 
                 //Train the hidden layers
                 while (allNodesAndInputs.Count() > 0) {
                     Queue<(NeuralNode, double)> layer = allNodesAndInputs.Pop();
-                    //Check to see if the layer is actual learning nodes
+                    //Check to see if the layer is made of learning nodes
                     if (layer.Peek().Item1 is LearnableNode) {
                         //Train the learning nodes
                         for (int k = 0; k < layer.Count(); k++)
                         {
-                            (NeuralNode, double) node = layer.Dequeue();
-                            ((LearnableNode)(node.Item1)).BackTrackLearn(i, tempLR);
-                            layer.Enqueue(node);
+                            (NeuralNode, double) node = layer.Dequeue();    //Take one of the nodes out of the layer
+                            ((LearnableNode)(node.Item1)).BackTrackLearn(i, tempLR);    //Perform training on the hidden node
+                            layer.Enqueue(node);    //Put the node back into the layer
                         }
                     }
                     temp.Push(layer);

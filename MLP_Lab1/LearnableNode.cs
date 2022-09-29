@@ -38,10 +38,10 @@ namespace MLP_Lab1
                 inputSum += node.Item1.NodeOutput(testNum) * node.Item2;
             }
 
-            //Apply the bias
+            //Apply the bias to the weighted sum
             inputSum += bias;
 
-            //Return the logitic sigmoid function
+            //Return the logitic sigmoid function running off of the weighted sum
             return 1.0 / (1.0 + Math.Exp(-inputSum));
         }
 
@@ -77,15 +77,24 @@ namespace MLP_Lab1
                 //If the input node is a learning node, then it will have to have the (weight between this and node.Item1 * this delta)
                 if (node.Item1 is LearnableNode)
                 {
+                    //Give the current node's weighted delta (weight is unchanged still) to next node back for it to learn from when doing its weighted sum
                     ((LearnableNode)node.Item1).OutToLearnFrom(node.Item2 * nodeD);
                 }
-                node.Item2 += (learningRate * nodeD * node.Item1.NodeOutput(testNum));
+                //current node's weight for input node = current weight + learning rate * current node delta * input node's output
+                node.Item2 = node.Item2 + (learningRate * nodeD * node.Item1.NodeOutput(testNum));
                 inputs.Enqueue(node);
             }
 
             //Apply learning to bias
-            bias += (learningRate * nodeD * bias);
+            bias = bias + (learningRate * nodeD);
             learningVals.Clear();
         }
     }
 }
+
+
+/*
+ * deltak = ek(n) * phik(n)
+ * ek(n) = dk - yk
+ * phik(n) = a * yk * (1 - yk)
+ */

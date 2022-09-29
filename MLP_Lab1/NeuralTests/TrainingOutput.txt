@@ -1,0 +1,71 @@
+Learning Rate = 0.05; Momentum = 1
+Training has finished successfully!
+Inputs for Epoch 45187:
+ 1 1 0 1 0 1 0 1 0 0 0 1 1 0 0 1
+ 0 0 0 1 1 1 0 1 1 1 0 1 0 1 0 0
+ 1 0 1 0 0 0 1 1 1 1 0 1 1 0 0 0
+ 1 0 1 0 0 1 0 0 0 1 1 1 0 1 0 1
+
+Expected outputs for Epoch 45187:
+ 1 1 0 0 1 1 1 1 0 1 1 0 0 0 0 0
+Outputs for Epoch 45187:
+ 0.96 0.981 0 0 0.966 0.985 0.965 0.95 0.046 0.961 0.988 0 0.046 0.034 0 0.047
+Errors for Epoch 45187:
+ 0.039 0.018 0 0 0.033 0.014 0.034 0.049 0.046 0.038 0.011 0 0.046 0.034 0 0.047
+
+Learning Rate = 0.1; Momentum = 1
+
+
+Learning Rate = 0.15; Momentum = 1
+
+
+Learning Rate = 0.2; Momentum = 1
+
+
+Learning Rate = 0.25; Momentum = 1
+
+
+Learning Rate = 0.3; Momentum = 1
+
+
+Learning Rate = 0.35; Momentum = 1
+
+
+Learning Rate = 0.4; Momentum = 1
+
+
+Learning Rate = 0.45; Momentum = 1
+
+
+Learning Rate = 0.5; Momentum = 1
+
+
+-------------------------------------------------------------------------------------------------------------------------------------
+Learning Rate = 0.05; Momentum = 0.9
+
+
+Learning Rate = 0.1; Momentum = 0.9
+
+
+Learning Rate = 0.15; Momentum = 0.9
+
+
+Learning Rate = 0.2; Momentum = 0.9
+
+
+Learning Rate = 0.25; Momentum = 0.9
+
+
+Learning Rate = 0.3; Momentum = 0.9
+
+
+Learning Rate = 0.35; Momentum = 0.9
+
+
+Learning Rate = 0.4; Momentum = 0.9
+
+
+Learning Rate = 0.45; Momentum = 0.9
+
+
+Learning Rate = 0.5; Momentum = 0.9
