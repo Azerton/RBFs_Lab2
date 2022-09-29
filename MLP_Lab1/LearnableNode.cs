@@ -35,9 +35,7 @@ namespace MLP_Lab1
             double inputSum = 0;
             foreach ((NeuralNode, double) node in inputs)
             {
-                double nodeOutput = node.Item1.NodeOutput(testNum);
-                inputSum += nodeOutput * node.Item2;
-                //Console.WriteLine(node + " with node output of " + nodeOutput);
+                inputSum += node.Item1.NodeOutput(testNum) * node.Item2;
             }
 
             //Apply the bias
@@ -72,7 +70,8 @@ namespace MLP_Lab1
             double nodeD = nodeOutput * (1.0 - nodeOutput) * sum;
 
             //Apply learning to weights
-            for (int i = 0; i < inputs.Count(); i++)
+            int inputCnt = inputs.Count;
+            for (int i = 0; i < inputCnt; i++)
             {
                 (NeuralNode, double) node = inputs.Dequeue();
                 //If the input node is a learning node, then it will have to have the (weight between this and node.Item1 * this delta)

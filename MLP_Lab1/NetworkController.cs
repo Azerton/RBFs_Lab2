@@ -14,14 +14,14 @@ namespace MLP_Lab1
         Stack<Queue<(NeuralNode, double)>> allNodesAndInputs;
         Queue<(NeuralNode, double)> lastInputLayer, currWorkingLayer;
         NeuralNode outputNode;
-        List<List<int>> inputValuesLists, inputValuesForTests;
+        List<List<double>> inputValuesLists, inputValuesForTests;
         List<double> testAnswers;
         Random rand;    //Used for selecting random weight values
 
         public NetworkController()
         {
-            inputValuesLists = new List<List<int>>();
-            inputValuesForTests = new List<List<int>>();
+            inputValuesLists = new List<List<double>>();
+            inputValuesForTests = new List<List<double>>();
             testAnswers = new List<double>();
             allNodesAndInputs = new Stack<Queue<(NeuralNode, double)>>();
             lastInputLayer = new Queue<(NeuralNode, double)>();
@@ -126,7 +126,7 @@ namespace MLP_Lab1
 
             for (int i = 0; i < testsPerEpoch; i++)
             {
-                List<int> testInputs = new List<int>();
+                List<double> testInputs = new List<double>();
                 for (int j = 0; j < inputValuesLists.Count(); j++)
                 {
                     testInputs.Add(inputValuesLists[j][i % inputValuesLists[j].Count()]);
@@ -148,11 +148,11 @@ namespace MLP_Lab1
                     for (int i = 0; i < numInputs; i++) {
                         string text = reader.ReadLine();
                         if (text != null) {
-                            List<int> temp = new List<int>();
+                            List<double> temp = new List<double>();
                             string[] bits = text.Split('\t');
                             for (int j = 0; j < bits.Length; j++)
                             {
-                                int x = int.Parse(bits[j]);
+                                double x = double.Parse(bits[j]);
                                 temp.Add(x);
                             }
                             inputValuesLists.Add(temp);
@@ -168,9 +168,9 @@ namespace MLP_Lab1
                 Console.WriteLine("File failed to open");
                 return -1;
             }
-            foreach(List<int> inputList in inputValuesLists)
+            foreach(List<double> inputList in inputValuesLists)
             {
-                foreach (int val in inputList)
+                foreach (double val in inputList)
                 {
                     Console.Write(val + " ");
                 }
@@ -231,15 +231,19 @@ namespace MLP_Lab1
             allNodesAndInputs.Push(lastInputLayer);
 
             //Now create the all the learning nodes
-            Queue<(NeuralNode, double)> toCopy;
             for(int i = 0; i < numLayers; i++)
             {
                 currWorkingLayer = new Queue<(NeuralNode, double)>();
                 for (int j = 0; j < nodesPerLayer[i]; j++)
                 {
-                    toCopy = new Queue<(NeuralNode, double)>();
-                    toCopy = lastInputLayer;
-                    currWorkingLayer.Enqueue((new LearnableNode(new Queue<(NeuralNode, double)>(toCopy), RndWeightBias()), RndWeightBias()));
+                    int nodesInLastLayer = lastInputLayer.Count;
+                    for (int k = 0; k < nodesInLastLayer; k++)
+                    {
+                        (NeuralNode, double) node = lastInputLayer.Dequeue();
+                        node.Item2 = RndWeightBias();
+                        lastInputLayer.Enqueue(node);
+                    }
+                    currWorkingLayer.Enqueue((new LearnableNode(new Queue<(NeuralNode, double)>(lastInputLayer), RndWeightBias()), RndWeightBias()));
                 }
                 //Move on to the next layer
                 allNodesAndInputs.Push(currWorkingLayer);
@@ -254,15 +258,30 @@ namespace MLP_Lab1
         {
             epochs = 0;
             List<List<double>> testResults = new List<List<double>>();
-            using StreamWriter file = System.IO.File.CreateText(@"C:\Users\alsro\Source\Repos\MLP_Lab1\MLP_Lab1\NeuralTests\TrainingOutput.txt");
+            //using StreamWriter file = System.IO.File.CreateText(@"C:\Users\alsro\Source\Repos\MLP_Lab1\MLP_Lab1\NeuralTests\TrainingOutput.txt");
             Console.WriteLine("Running training");
+            List<int> testingOrder;
             do
             {
+                testingOrder = new List<int>();
+                for (int i = 0; i < testsPerEpoch; i++)
+                {
+                    testingOrder.Add(i);
+                }
+                testingOrder = Shuffle(testingOrder);
                 epochs++;
                 //file.WriteLine("Outputs and Errors for Epoch " + (epochs + 1) + ":");
-                testResults = RunEpoch();
+                testResults = RunEpoch(testingOrder);
             } while (!CheckTraining(testResults[1]));
+
+            //Exit training as it has finished successfully
             Console.WriteLine("Training has finished successfully!");
+            Console.WriteLine("Expected outputs for Epoch " + epochs + ": ");
+            foreach (int val in testingOrder)
+            {
+                Console.Write(" " + testAnswers[val]);
+            }
+            Console.WriteLine();
             Console.WriteLine("Outputs for Epoch " + epochs + ": ");
             foreach (double val in testResults[0])
             {
@@ -290,11 +309,12 @@ namespace MLP_Lab1
         }
 
         //Runs an epoch, returns the absolute error values for each test that was run in list form
-        public List<List<double>> RunEpoch()
+        public List<List<double>> RunEpoch(List<int> testingOrder)
         {
             List<double> testErrs = new List<double>();
             List<double> testOuts = new List<double>();
-            for (int i = 0; i < testsPerEpoch; i++)
+
+            foreach (int i in testingOrder)
             {
                 //Get the output for the test
                 double output = outputNode.NodeOutput(i);
@@ -333,17 +353,23 @@ namespace MLP_Lab1
                     allNodesAndInputs.Push(temp.Pop());
                 }
             }
-            Console.Write("Output for epoch " + epochs + " is ");
-            foreach (double val in testOuts)
-            {
-                Console.Write(" " + val);
-            }
-            Console.WriteLine();
 
             if (epochs % 100000 == 0)
             {
-                Console.Write("Outputs for Epoch " + epochs + ":");
+                Console.WriteLine("Expected outputs for Epoch " + epochs + ": ");
+                foreach (int val in testingOrder)
+                {
+                    Console.Write(" " + testAnswers[val]);
+                }
+                Console.WriteLine();
+                Console.WriteLine("Outputs for Epoch " + epochs + ": ");
                 foreach (double val in testOuts)
+                {
+                    Console.Write(" " + Math.Truncate(val * 1000) / 1000);
+                }
+                Console.WriteLine();
+                Console.WriteLine("Errors for Epoch " + epochs + ": ");
+                foreach (double val in testErrs)
                 {
                     Console.Write(" " + Math.Truncate(val * 1000) / 1000);
                 }
@@ -354,8 +380,27 @@ namespace MLP_Lab1
             List<List<double>> errOuts = new List<List<double>>();
             errOuts.Add(testOuts);
             errOuts.Add(testErrs);
+            //System.Threading.Thread.Sleep(1000);
             return errOuts;
-        } 
+        }
+
+        //Used to shuffle lists, in particular the list of order of test inputs
+        public List<int> Shuffle(List<int> list)
+        {
+            List<int> result = new List<int>(list);
+            List<int> temp = new List<int>(list);
+            int n = list.Count;
+            while (n > 1)
+            {
+                n--;
+                int k = rand.Next(n + 1);
+                int value = temp[k];
+                temp[k] = temp[n];
+                temp[n] = value;
+            }
+            result = temp;
+            return result;
+        }
 
         //Used to select a random double between -1.0 and 1.0 to be used as an initial weight or bias
         private double RndWeightBias()

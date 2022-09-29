@@ -8,15 +8,15 @@ namespace MLP_Lab1
 {
     public class InputNode : NeuralNode
     {
-        private List<int> outputs;
-        public InputNode(List<int> outputs)
+        private List<double> outputs;
+        public InputNode(List<double> outputs)
         {
             this.outputs = outputs;
         }
 
         public double NodeOutput(int testNum)
         {
-            return (float)outputs[testNum];
+            return (double)outputs[testNum];
         }
     }
 }
