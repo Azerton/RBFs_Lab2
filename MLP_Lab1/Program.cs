@@ -15,6 +15,7 @@ namespace MLP_Lab1
             if (success == 0) {
                 networkController.GenerateNetwork();
                 networkController.RunTraining();
+                //networkController.RunTraining();
             }
         }
     }

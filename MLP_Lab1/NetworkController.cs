@@ -260,7 +260,7 @@ namespace MLP_Lab1
             {
                 epochs++;
                 //file.WriteLine("Outputs and Errors for Epoch " + (epochs + 1) + ":");
-                testResults = RunEpoch(file);
+                testResults = RunEpoch();
             } while (!CheckTraining(testResults[1]));
             Console.WriteLine("Training has finished successfully!");
             Console.WriteLine("Outputs for Epoch " + epochs + ": ");
@@ -290,7 +290,7 @@ namespace MLP_Lab1
         }
 
         //Runs an epoch, returns the absolute error values for each test that was run in list form
-        public List<List<double>> RunEpoch(StreamWriter file)
+        public List<List<double>> RunEpoch()
         {
             List<double> testErrs = new List<double>();
             List<double> testOuts = new List<double>();
@@ -302,7 +302,7 @@ namespace MLP_Lab1
                 //Add the output to the list of outputs for the epoch
                 testOuts.Add(output);
                 //file.WriteLine("Output for Test " + i + " is " + output + ". The expected output was " + testAnswers[i] + ".");
-
+                
                 //Train the initial output node
                 double tempLR = lrCurr;
                 if (weightMomentum != 1) tempLR = lrCurr / (1 - weightMomentum);
@@ -333,6 +333,13 @@ namespace MLP_Lab1
                     allNodesAndInputs.Push(temp.Pop());
                 }
             }
+            Console.Write("Output for epoch " + epochs + " is ");
+            foreach (double val in testOuts)
+            {
+                Console.Write(" " + val);
+            }
+            Console.WriteLine();
+
             if (epochs % 100000 == 0)
             {
                 Console.Write("Outputs for Epoch " + epochs + ":");

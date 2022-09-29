@@ -35,7 +35,9 @@ namespace MLP_Lab1
             double inputSum = 0;
             foreach ((NeuralNode, double) node in inputs)
             {
-                inputSum += node.Item1.NodeOutput(testNum) * node.Item2;
+                double nodeOutput = node.Item1.NodeOutput(testNum);
+                inputSum += nodeOutput * node.Item2;
+                //Console.WriteLine(node + " with node output of " + nodeOutput);
             }
 
             //Apply the bias
