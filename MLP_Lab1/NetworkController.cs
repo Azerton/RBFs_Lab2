@@ -1,5 +1,4 @@
-﻿// See https://aka.ms/new-console-template for more information
-using System;
+﻿using System;
 using System.IO;
 using System.Text;
 using static System.Net.WebRequestMethods;
@@ -276,6 +275,7 @@ namespace MLP_Lab1
 
             //Exit training as it has finished successfully
             Console.WriteLine("Training has finished successfully!");
+            Console.WriteLine("Learning Rate: " + lrCurr + "; Weight Momentum: " + weightMomentum);
             Console.WriteLine("Inputs for Epoch " + epochs + ": ");
             foreach (List<double> inputList in inputValuesLists)
             {

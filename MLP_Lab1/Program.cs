@@ -10,13 +10,19 @@ namespace MLP_Lab1
     {
         static void Main(string[] args)
         {
-            NetworkController networkController = new NetworkController();
-            int success = networkController.ObtainBaseInfo();
-            if (success == 0) {
-                networkController.GenerateNetwork();
-                networkController.RunTraining();
-                //networkController.RunTraining();
-            }
+            String userInput;
+            do
+            {
+                NetworkController networkController = new NetworkController();
+                int success = networkController.ObtainBaseInfo();
+                if (success == 0)
+                {
+                    networkController.GenerateNetwork();
+                    networkController.RunTraining();
+                }
+                Console.Write("Would you like to run another training? [y/n]: ");
+                userInput = Console.ReadLine();
+            } while (userInput != null && userInput.Equals("y"));
         }
     }
 }
