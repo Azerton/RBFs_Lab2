@@ -7,63 +7,38 @@ namespace RBF_Lab2
 {
     public class NetworkController
     {
-        int numInputs, numLayers, epochs, testsPerEpoch;
-        int[] nodesPerLayer;    //NOTE: Code can still run if last layer is more than 1 node, but will only take output from one output layer node (Specifically the first one created during Network Generation)
-        double weightMomentum, lrCurr, absErr;
+        int numEpochs, testsPerEpoch, numGauCenters;
+        double learnRate;
         Stack<Queue<(NeuralNode, double)>> allNodesAndInputs;
         Queue<(NeuralNode, double)> lastInputLayer, currWorkingLayer;
         NeuralNode outputNode;
-        List<List<double>> inputValuesLists, inputValuesForTests;
-        List<double> testAnswers;
+        List<(double, double)> generatedPoints;
         Random rand;    //Used for selecting random weight values
 
         public NetworkController()
         {
-            inputValuesLists = new List<List<double>>();
-            inputValuesForTests = new List<List<double>>();
-            testAnswers = new List<double>();
             allNodesAndInputs = new Stack<Queue<(NeuralNode, double)>>();
             lastInputLayer = new Queue<(NeuralNode, double)>();
             currWorkingLayer = new Queue<(NeuralNode, double)>();
+            generatedPoints = new List<(double, double)>();
             rand = new Random();
         }
 
         //Will obtain the info to fill in numInputs, numLayers, nodesPerLayer, lrChange, weightMomentum, lrBounds, and inputValuesLists
-        public int ObtainBaseInfo()
+        public void ObtainBaseInfo()
         {
             int inputTries = 0;
             string userInput = "";
-            //Obtains number of input nodes
-            do
-            {
-                if (inputTries > 0) Console.WriteLine("Failed to obtain an integer from input, please try again.");
-                Console.Write("Enter number of input nodes [Integer]: ");
-                inputTries++;
-                userInput = Console.ReadLine();
-            } while (!int.TryParse(userInput, out numInputs));
 
-            //Obtains number of node layers, does not count the input nodes
+            //Obtains number of nodes in hidden layer
             inputTries = 0;
             do
             {
                 if (inputTries > 0) Console.WriteLine("Failed to obtain an integer from input, please try again.");
-                Console.Write("Enter number of node layers (excluding input nodes) [Integer]: ");
+                Console.Write("Enter number of nodes (Gaussian Centers) for hidden layer [Integer]: ");
                 inputTries++;
                 userInput = Console.ReadLine();
-            } while (!int.TryParse(userInput, out numLayers));
-
-            //Obtains number of nodes for each of the layers
-            nodesPerLayer = new int[numLayers];
-            for (int i = 0; i < numLayers; i++) {
-                inputTries = 0;
-                do
-                {
-                    if (inputTries > 0) Console.WriteLine("Failed to obtain an integer from input, please try again.");
-                    Console.Write("Enter number of nodes for layer " + (i+1) + " of nodes [Integer]: ");
-                    inputTries++;
-                    userInput = Console.ReadLine();
-                } while (!int.TryParse(userInput, out nodesPerLayer[i]));
-            }
+            } while (!int.TryParse(userInput, out numGauCenters));
 
             //Obtains learning rate
             inputTries = 0;
@@ -73,194 +48,85 @@ namespace RBF_Lab2
                 Console.Write("Enter the learning rate [Double]: ");
                 inputTries++;
                 userInput = Console.ReadLine();
-            } while (!double.TryParse(userInput, out lrCurr));
-
-            //Obtains absolute error
-            inputTries = 0;
-            do
-            {
-                if (inputTries > 0) Console.WriteLine("Failed to obtain a float from input, please try again.");
-                Console.Write("Enter the absolute error [Double]: ");
-                inputTries++;
-                userInput = Console.ReadLine();
-            } while (!double.TryParse(userInput, out absErr));
-
-            //Obtains weight momentum
-            inputTries = 0;
-            do
-            {
-                if (inputTries > 0) Console.WriteLine("Failed to obtain a float from input, please try again.");
-                Console.Write("Enter weight momentum [Double]: ");
-                inputTries++;
-                userInput = Console.ReadLine();
-            } while (!double.TryParse(userInput, out weightMomentum));
+            } while (!double.TryParse(userInput, out learnRate));
 
             //Obtains number of tests per epoch
             inputTries = 0;
             do
             {
                 if (inputTries > 0) Console.WriteLine("Failed to obtain an integer from input, please try again.");
-                Console.Write("Enter number of tests per epoch [Integer]: ");
+                Console.Write("Enter number of tests (Number of random points from original function) per epoch [Integer]: ");
                 inputTries++;
                 userInput = Console.ReadLine();
             } while (!int.TryParse(userInput, out testsPerEpoch));
 
-            //Obtains the input values lists
-            //TODO: Make the input values file selectable by the user
-            int success = ObtainInputNodeInfo(@"NeuralTests/BaseTest.txt");
-            if (success != 0)
+            //Obtains number of epochs to train for
+            inputTries = 0;
+            do
             {
-                Console.WriteLine("Process of obtaining input values has failed. See output above for more info.");
-                return -1;
-            }
-
-            //Obtains the test answers
-            //TODO: Make the test answers file selectable by the user
-            success = ObtainTestAnswers(@"NeuralTests/BaseTestAnswers.txt");
-            if (success != 0)
-            {
-                Console.WriteLine("Process of obtaining test answers has failed. See output above for more info.");
-                return -1;
-            }
-
-            for (int i = 0; i < testsPerEpoch; i++)
-            {
-                List<double> testInputs = new List<double>();
-                for (int j = 0; j < inputValuesLists.Count(); j++)
-                {
-                    testInputs.Add(inputValuesLists[j][i % inputValuesLists[j].Count()]);
-                }
-                inputValuesForTests.Add(testInputs);
-            }
-            return 0;
-        }
-
-        //Dedicated to obtaining the info for inputValuesLists
-        public int ObtainInputNodeInfo(string inputFile)
-        {
-            Console.WriteLine("Trying to obtain input");
-            if (System.IO.File.Exists(inputFile))
-            {
-                Console.WriteLine("File opened");
-                using (TextReader reader = System.IO.File.OpenText(inputFile))
-                {
-                    for (int i = 0; i < numInputs; i++) {
-                        string text = reader.ReadLine();
-                        if (text != null) {
-                            List<double> temp = new List<double>();
-                            string[] bits = text.Split('\t');
-                            for (int j = 0; j < bits.Length; j++)
-                            {
-                                double x = double.Parse(bits[j]);
-                                temp.Add(x);
-                            }
-                            inputValuesLists.Add(temp);
-                        } else
-                        {
-                            Console.WriteLine("No input for a possible input node " + (i+1) + " as end of file was reached instead");
-                            return -1;
-                        }
-                    }
-                }
-            } else
-            {
-                Console.WriteLine("File failed to open");
-                return -1;
-            }
-            foreach(List<double> inputList in inputValuesLists)
-            {
-                foreach (double val in inputList)
-                {
-                    Console.Write(val + " ");
-                }
-                Console.WriteLine();
-            }
-            Console.WriteLine("All input values have been obtained which are listed above");
-            return 0;
-        }
-
-        //Dedicated to obtaining the info for testAnswers
-        public int ObtainTestAnswers(string inputFile)
-        {
-            Console.WriteLine("Trying to obtain test answers");
-            if (System.IO.File.Exists(inputFile))
-            {
-                Console.WriteLine("File opened");
-                using (TextReader reader = System.IO.File.OpenText(inputFile))
-                {
-                    string text = reader.ReadLine();
-                    if (text != null)
-                    {
-                        string[] bits = text.Split('\t');
-                        for (int j = 0; j < bits.Length; j++)
-                        {
-                            double x = double.Parse(bits[j]);
-                            testAnswers.Add(x);
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine("No test answers as end of file was reached instead");
-                        return -1;
-                    }
-                }
-            }
-            else
-            {
-                Console.WriteLine("File failed to open");
-                return -1;
-            }
-            foreach (double val in testAnswers)
-            {
-                Console.Write(val + " ");
-            }
-            Console.WriteLine();
-            Console.WriteLine("All answers have been obtained which are listed above");
-            return 0;
+                if (inputTries > 0) Console.WriteLine("Failed to obtain an integer from input, please try again.");
+                Console.Write("Enter the number of epochs to train for [Integer]: ");
+                inputTries++;
+                userInput = Console.ReadLine();
+            } while (!int.TryParse(userInput, out numEpochs));
         }
 
         //Generates the Neural Network
         public void GenerateNetwork()
         {
-            //The base input nodes are created
-            for (int i = 0; i < numInputs; i++)
-            {
-                lastInputLayer.Enqueue((new InputNode(inputValuesLists[i]), RndWeightBias()));
-            }
+            //Generate the list of random points
+            GeneratePoints();
+
+            //The base input node is created
+            lastInputLayer.Enqueue((new InputNode(generatedPoints), 1.0));
             allNodesAndInputs.Push(lastInputLayer);
 
-            //Now create the all the learning nodes
-            for(int i = 0; i < numLayers; i++)
+            //TODO: K-means algorithm to find the GausCenters for the RBFNodes
+
+            //Now create the all the hidden nodes
+            currWorkingLayer = new Queue<(NeuralNode, double)>();
+            for (int j = 0; j < numGauCenters; j++)
             {
-                currWorkingLayer = new Queue<(NeuralNode, double)>();
-                for (int j = 0; j < nodesPerLayer[i]; j++)
-                {
-                    int nodesInLastLayer = lastInputLayer.Count;
-                    for (int k = 0; k < nodesInLastLayer; k++)
-                    {
-                        (NeuralNode, double) node = lastInputLayer.Dequeue();
-                        node.Item2 = RndWeightBias();
-                        lastInputLayer.Enqueue(node);
-                    }
-                    currWorkingLayer.Enqueue((new LearnableNode(new Queue<(NeuralNode, double)>(lastInputLayer), RndWeightBias()), RndWeightBias()));
-                }
-                //Move on to the next layer
-                allNodesAndInputs.Push(currWorkingLayer);
-                lastInputLayer = currWorkingLayer;
+                currWorkingLayer.Enqueue((new RBFHiddenNode(lastInputLayer.Peek().Item1), RndWeightBias()));
             }
+
+            //Move on to the output layer
+            allNodesAndInputs.Push(currWorkingLayer);
+            lastInputLayer = currWorkingLayer;
+
+            //Create ouput layer node
+            currWorkingLayer = new Queue<(NeuralNode, double)>();
+            currWorkingLayer.Enqueue((new LearnableNode(lastInputLayer, RndWeightBias()), RndWeightBias()));
+
             //Select output node to start learning operation on
-            outputNode = lastInputLayer.Peek().Item1;
+            outputNode = currWorkingLayer.Peek().Item1;
             PresentNodeNetwork();
         }
 
+        //Generates the random points from the original function
+        private void GeneratePoints()
+        {
+            for (int i = 0; i < testsPerEpoch; i++)
+            {
+                double x, y, isPos, yNoise;
+                x = rand.NextDouble();  //Choose x value between 0.0 and 1.0
+                y = 0.5 + (0.4 * Math.Sin(2 * Math.PI * x));    //Find y value for the x value
+                yNoise = rand.NextSingle() / 10.0;  //Get amount of noise, -0.1 to 0.1, for the y value 
+                isPos = rand.Next(2);  //Chooses either 1 or 0
+                if (isPos == 0) yNoise = yNoise * -1;   //If isPos was chosen to be 0, then the noise is negative
+                y += yNoise;    //Add the noise to the y value
+                generatedPoints.Add((x, y));    //Add point with noise into the system
+            }
+        }
+
+        //Runs the training of the RBF network
         public void RunTraining()
         {
-            epochs = 0;
-            List<List<double>> testResults = new List<List<double>>();
-            //using StreamWriter file = System.IO.File.CreateText(@"C:\Users\alsro\Source\Repos\MLP_Lab1\MLP_Lab1\NeuralTests\TrainingOutput.txt");
+            int numEpochsRun = 0;
+            List<(double, double)> testResults = new List<(double, double)>();
             Console.WriteLine("Running training");
-            List<int> testingOrder;
-            do
+            List<int> testingOrder = new List<int>();
+            while (numEpochsRun < numEpochs)
             {
                 testingOrder = new List<int>();
                 for (int i = 0; i < testsPerEpoch; i++)
@@ -268,130 +134,50 @@ namespace RBF_Lab2
                     testingOrder.Add(i);
                 }
                 testingOrder = Shuffle(testingOrder);
-                epochs++;
-                //file.WriteLine("Outputs and Errors for Epoch " + (epochs + 1) + ":");
+                numEpochsRun++;
                 testResults = RunEpoch(testingOrder);
-            } while (!CheckTraining(testResults[1]));
+            }
 
             //Exit training as it has finished successfully
-            Console.WriteLine("Training has finished successfully!");
-            Console.WriteLine("Learning Rate: " + lrCurr + "; Weight Momentum: " + weightMomentum);
-            Console.WriteLine("Inputs for Epoch " + epochs + ": ");
-            foreach (List<double> inputList in inputValuesLists)
-            {
-                foreach (int val in testingOrder)
-                {
-                    Console.Write(" " + inputList[val]);
-                }
-                Console.WriteLine();
-            }
-            Console.WriteLine();
-            Console.WriteLine("Expected outputs for Epoch " + epochs + ": ");
+            Console.WriteLine("Training has finished");
+            Console.WriteLine("Learning Rate: " + learnRate);
+            Console.WriteLine("///////////////////////////////////////////////////////////////////////////////////");
+            Console.WriteLine("Sample points in test order for Epoch " + numEpochsRun + ": ");
+            int testNum = 1;
             foreach (int val in testingOrder)
             {
-                Console.Write(" " + testAnswers[val]);
+                Console.WriteLine("\tTest Point " + testNum + ": " + generatedPoints[val]);
+                testNum++;
             }
-            Console.WriteLine();
-            Console.WriteLine("Outputs for Epoch " + epochs + ": ");
-            foreach (double val in testResults[0])
+            Console.WriteLine("///////////////////////////////////////////////////////////////////////////////////");
+            Console.WriteLine("Produced points in test order for Epoch " + numEpochsRun + ": ");
+            for (int i = 1; i <= testsPerEpoch; i++)
             {
-                Console.Write(" " + Math.Truncate(val * 1000) / 1000);
+                Console.WriteLine("\tProduced Point " + i + ": " + testResults[i]);
             }
-            Console.WriteLine();
-            Console.WriteLine("Errors for Epoch " + epochs + ": ");
-            foreach (double val in testResults[1])
-            {
-                Console.Write(" " + Math.Truncate(val * 1000) / 1000);
-            }
-            Console.WriteLine();
-
+            Console.WriteLine("-----------------------------------------------------------------------------------");
         }
 
-        //Used to determine if the training has reached the required error range
-        public bool CheckTraining(List<double> testErrs)
+        //Runs an epoch, returns the list of points generated for the epoch
+        public List<(double, double)> RunEpoch(List<int> testingOrder)
         {
-            foreach(double err in testErrs)
-            {
-                //Console.WriteLine("Test Error was... " + err);
-                if (err.CompareTo(absErr) >= 0) return false;
-            }
-            return true;
-        }
-
-        //Runs an epoch, returns the absolute error values for each test that was run in list form
-        public List<List<double>> RunEpoch(List<int> testingOrder)
-        {
-            List<double> testErrs = new List<double>();
-            List<double> testOuts = new List<double>();
+            List<(double, double)> testPoints = new List<(double, double)>();
 
             foreach (int i in testingOrder)
             {
                 //Get the output for the test
                 double output = outputNode.NodeOutput(i);
 
-                //Add the output to the list of outputs for the epoch
-                testOuts.Add(output);
-                //file.WriteLine("Output for Test " + i + " is " + output + ". The expected output was " + testAnswers[i] + ".");
-                
+                //Add the produced point to the list of outputs for the epoch
+                testPoints.Add((generatedPoints[i].Item1, output));
+
                 //Train the initial output node
-                double tempLR = lrCurr; //The current learning rate
-                if (weightMomentum != 1) tempLR = lrCurr / (1 - weightMomentum);    //The modified learning rate based on the weight momentum instead
-                Stack<Queue<(NeuralNode, double)>> temp = new Stack<Queue<(NeuralNode, double)>>();
-                temp.Push(allNodesAndInputs.Pop());
-                double outputd = testAnswers[i] - output;   //The error between the expected output and the actual output
-                testErrs.Add(Math.Abs(outputd));
+                double outputd = generatedPoints[i].Item2 - output;   //The error between the expected output and the actual output
                 ((LearnableNode)outputNode).OutToLearnFrom(outputd);    //Add the error of the output to the queue of error values that the node will need to learn from
-                ((LearnableNode)outputNode).BackTrackLearn(i, tempLR);  //Run the training on the output node
-
-                //Train the hidden layers
-                while (allNodesAndInputs.Count() > 0) {
-                    Queue<(NeuralNode, double)> layer = allNodesAndInputs.Pop();
-                    //Check to see if the layer is made of learning nodes
-                    if (layer.Peek().Item1 is LearnableNode) {
-                        //Train the learning nodes
-                        for (int k = 0; k < layer.Count(); k++)
-                        {
-                            (NeuralNode, double) node = layer.Dequeue();    //Take one of the nodes out of the layer
-                            ((LearnableNode)(node.Item1)).BackTrackLearn(i, tempLR);    //Perform training on the hidden node
-                            layer.Enqueue(node);    //Put the node back into the layer
-                        }
-                    }
-                    temp.Push(layer);
-                }
-                while (temp.Count() > 0)
-                {
-                    allNodesAndInputs.Push(temp.Pop());
-                }
+                ((LearnableNode)outputNode).RBFLearn(i, learnRate);     //Perform learning on the output node
             }
 
-            if (epochs % 100000 == 0)
-            {
-                Console.WriteLine("Expected outputs for Epoch " + epochs + ": ");
-                foreach (int val in testingOrder)
-                {
-                    Console.Write(" " + testAnswers[val]);
-                }
-                Console.WriteLine();
-                Console.WriteLine("Outputs for Epoch " + epochs + ": ");
-                foreach (double val in testOuts)
-                {
-                    Console.Write(" " + Math.Truncate(val * 1000) / 1000);
-                }
-                Console.WriteLine();
-                Console.WriteLine("Errors for Epoch " + epochs + ": ");
-                foreach (double val in testErrs)
-                {
-                    Console.Write(" " + Math.Truncate(val * 1000) / 1000);
-                }
-                Console.WriteLine();
-                PresentNodeNetwork();
-                Console.WriteLine();
-            }
-            List<List<double>> errOuts = new List<List<double>>();
-            errOuts.Add(testOuts);
-            errOuts.Add(testErrs);
-            //System.Threading.Thread.Sleep(1000);
-            return errOuts;
+            return testPoints;  //Return the produced points for the epoch
         }
 
         //Used to shuffle lists, in particular the list of order of test inputs

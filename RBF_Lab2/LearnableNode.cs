@@ -42,7 +42,7 @@ namespace RBF_Lab2
             inputSum += bias;
 
             //Return the logitic sigmoid function running off of the weighted sum
-            return 1.0 / (1.0 + Math.Exp(-inputSum));
+            return inputSum;
         }
 
         public void OutToLearnFrom(double val)
@@ -80,6 +80,29 @@ namespace RBF_Lab2
                     //Give the current node's weighted delta (weight is unchanged still) to next node back for it to learn from when doing its weighted sum
                     ((LearnableNode)node.Item1).OutToLearnFrom(node.Item2 * nodeD);
                 }
+                //current node's weight for input node = current weight + learning rate * current node delta * input node's output
+                node.Item2 = node.Item2 + (learningRate * nodeD * node.Item1.NodeOutput(testNum));
+                inputs.Enqueue(node);
+            }
+
+            //Apply learning to bias
+            bias = bias + (learningRate * nodeD);
+            learningVals.Clear();
+        }
+
+        public void RBFLearn(int testNum, double learningRate)
+        {
+            double nodeOutput = this.NodeOutput(testNum);
+
+            //Get current node delta using [sum of (weight going to node k * node k delta) for all k]
+            double nodeD = nodeOutput * (1.0 - nodeOutput) * learningVals.Peek();
+
+            //Apply learning to weights
+            int inputCnt = inputs.Count;
+            for (int i = 0; i < inputCnt; i++)
+            {
+                (NeuralNode, double) node = inputs.Dequeue();
+
                 //current node's weight for input node = current weight + learning rate * current node delta * input node's output
                 node.Item2 = node.Item2 + (learningRate * nodeD * node.Item1.NodeOutput(testNum));
                 inputs.Enqueue(node);

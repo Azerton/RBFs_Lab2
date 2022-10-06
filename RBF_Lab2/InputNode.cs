@@ -8,15 +8,15 @@ namespace RBF_Lab2
 {
     public class InputNode : NeuralNode
     {
-        private List<double> outputs;
-        public InputNode(List<double> outputs)
+        private List<(double, double)> originalPointsList;
+        public InputNode(List<(double, double)> originalPointsList)
         {
-            this.outputs = outputs;
+            this.originalPointsList = originalPointsList;
         }
 
         public double NodeOutput(int testNum)
         {
-            return (double)outputs[testNum];
+            return originalPointsList[testNum].Item1;
         }
     }
 }
