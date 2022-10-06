@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MLP_Lab1
+namespace RBF_Lab2
 {
     public class InputNode : NeuralNode
     {

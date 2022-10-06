@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using static System.Net.WebRequestMethods;
 
-namespace MLP_Lab1
+namespace RBF_Lab2
 {
     public class NetworkController
     {

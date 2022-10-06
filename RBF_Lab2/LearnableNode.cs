@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace MLP_Lab1
+namespace RBF_Lab2
 {
     public class LearnableNode : NeuralNode
     {
