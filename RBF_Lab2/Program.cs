@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MLP_Lab1
+namespace RBF_Lab2
 {
     internal class Program
     {
@@ -14,12 +14,12 @@ namespace MLP_Lab1
             do
             {
                 NetworkController networkController = new NetworkController();
-                int success = networkController.ObtainBaseInfo();
-                if (success == 0)
-                {
-                    networkController.GenerateNetwork();
-                    networkController.RunTraining();
-                }
+                Console.WriteLine("Getting info...");
+                networkController.ObtainBaseInfo();
+                Console.WriteLine("Generating network...");
+                networkController.GenerateNetwork();
+                Console.WriteLine("Running training...");
+                networkController.RunTraining();
                 Console.Write("Would you like to run another training? [y/n]: ");
                 userInput = Console.ReadLine();
             } while (userInput != null && userInput.Equals("y"));

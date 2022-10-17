@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace MLP_Lab1
+namespace RBF_Lab2
 {
     public class LearnableNode : NeuralNode
     {
@@ -42,7 +42,7 @@ namespace MLP_Lab1
             inputSum += bias;
 
             //Return the logitic sigmoid function running off of the weighted sum
-            return 1.0 / (1.0 + Math.Exp(-inputSum));
+            return inputSum;
         }
 
         public void OutToLearnFrom(double val)
@@ -87,6 +87,24 @@ namespace MLP_Lab1
 
             //Apply learning to bias
             bias = bias + (learningRate * nodeD);
+            learningVals.Clear();
+        }
+
+        public void RBFLearn(int testNum, double learningRate, double error)
+        {
+            //Apply learning to weights
+            int inputCnt = inputs.Count;
+            for (int i = 0; i < inputCnt; i++)
+            {
+                (NeuralNode, double) node = inputs.Dequeue();
+
+                //current node's weight for input node = current weight + learning rate * current node delta * input node's output
+                node.Item2 = node.Item2 + (learningRate * error * node.Item1.NodeOutput(testNum));
+                inputs.Enqueue(node);
+            }
+
+            //Apply learning to bias
+            bias = bias + (learningRate * error);
             learningVals.Clear();
         }
     }
