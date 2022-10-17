@@ -90,13 +90,8 @@ namespace RBF_Lab2
             learningVals.Clear();
         }
 
-        public void RBFLearn(int testNum, double learningRate)
+        public void RBFLearn(int testNum, double learningRate, double error)
         {
-            double nodeOutput = this.NodeOutput(testNum);
-
-            //Get current node delta using [sum of (weight going to node k * node k delta) for all k]
-            double nodeD = nodeOutput * (1.0 - nodeOutput) * learningVals.Peek();
-
             //Apply learning to weights
             int inputCnt = inputs.Count;
             for (int i = 0; i < inputCnt; i++)
@@ -104,12 +99,12 @@ namespace RBF_Lab2
                 (NeuralNode, double) node = inputs.Dequeue();
 
                 //current node's weight for input node = current weight + learning rate * current node delta * input node's output
-                node.Item2 = node.Item2 + (learningRate * nodeD * node.Item1.NodeOutput(testNum));
+                node.Item2 = node.Item2 + (learningRate * error * node.Item1.NodeOutput(testNum));
                 inputs.Enqueue(node);
             }
 
             //Apply learning to bias
-            bias = bias + (learningRate * nodeD);
+            bias = bias + (learningRate * error);
             learningVals.Clear();
         }
     }
